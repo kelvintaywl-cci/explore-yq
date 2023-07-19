@@ -25,5 +25,6 @@ jobs:
           command: |
             # this uses the load function from yq (>= 4.x)
             # this way, the file content is slurped instead
+            # See https://mikefarah.gitbook.io/yq/operators/load#yaml
             export ORB_SOURCE="ecr.yaml"
             yq '.orbs.[env(ORB_NAME)] = load(env(ORB_SOURCE))' ./replaceme.yaml
