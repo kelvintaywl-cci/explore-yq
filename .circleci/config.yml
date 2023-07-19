@@ -1,0 +1,29 @@
+version: 2.1
+
+orbs:
+  orb-tools: circleci/orb-tools@12.0.3
+
+jobs:
+  build:
+    executor: orb-tools/default
+    resource_class: small
+    environment:
+      ORB_NAME: aws-ecr
+    steps:
+      - checkout
+      - run: yq --version
+      - run: circleci orb source circleci/aws-ecr > ecr.yaml
+      - run:
+          name: replace
+          command: |
+            # this is based the original source code as per circleci/orb-tools@12.0.3
+            # see https://github.com/CircleCI-Public/orb-tools-orb/blob/7b7c2918f9bcc4663539288eedb0a1fa8ce125dd/src/scripts/continue.sh#L51
+            export ORB_SOURCE=$(cat ./ecr.yaml)
+            yq '.orbs.[env(ORB_NAME)] = env(ORB_SOURCE)' ./replaceme.yaml
+      - run:
+          name: (proposed) replace using load
+          command: |
+            # this uses the load function from yq (>= 4.x)
+            # this way, the file content is slurped instead
+            export ORB_SOURCE="ecr.yaml"
+            yq '.orbs.[env(ORB_NAME)] = load(env(ORB_SOURCE))' ./replaceme.yaml
